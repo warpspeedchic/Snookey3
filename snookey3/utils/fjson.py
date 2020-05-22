@@ -15,16 +15,15 @@
 #  along with Snookey3.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-This module provides an f-string-like functionality for json.
+This module provides simple string formatting for json.
 """
 
 import json
 import re
 
 
-def load(filepath: str, **fvars: str) -> dict:
-    with open(filepath) as file:
-        dict_ = json.load(file)
+def load(file, **fvars: str) -> dict:
+    dict_ = json.load(file)
     _format(dict_, dict(**fvars))
     return dict_
 

@@ -58,5 +58,5 @@ def _init_logger():
 
 _init_logger()
 
-config = fjson.load(os.path.join(ROOT_DIR, 'config.json'),
-                    title=__title__, version=__version__)
+with open(os.path.join(ROOT_DIR, 'config.json')) as config_file:
+    config = fjson.load(config_file, title=__title__, version=__version__)

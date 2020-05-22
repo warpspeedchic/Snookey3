@@ -60,4 +60,3 @@ _init_logger()
 
 config = fjson.load(os.path.join(ROOT_DIR, 'config.json'),
                     title=__title__, version=__version__)
-print(config['USER_AGENT'])

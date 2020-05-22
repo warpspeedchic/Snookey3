@@ -1,0 +1,7 @@
+__pycache__
+/venv
+/.idea
+
+config.json
+*.log
+/cli.py

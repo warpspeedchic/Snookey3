@@ -46,8 +46,8 @@ def callback():
     try:
         token = get_token(code)
     except TokenNotFoundError as e:
+        logger.error('Token not found. Status code: %i. Response: %s', e.status_code, e.response_content)
         message = "Couldn't obtain a token."
-        logger.error(message + ' Status code: %i. Response: %s', e.status_code, e.response_content)
     else:
         os.environ['REDDIT_ACCESS_TOKEN'] = token
         logger.info('Token obtained')
@@ -69,7 +69,7 @@ def get_token(code: str) -> str:
 
     try:
         token = response.json()['access_token']
-    except KeyError:
+    except (KeyError, ValueError):
         raise TokenNotFoundError(response.status_code, response.content)
 
     return token

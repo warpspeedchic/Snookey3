@@ -21,6 +21,7 @@ import requests
 
 from snookey3 import config
 from . import callbacks
+from .exceptions import UnsuccessfulRequestException
 
 
 def get_headers() -> dict:
@@ -49,3 +50,22 @@ def get_authorization_url() -> str:
               'scope': '*'}
     url = 'https://www.reddit.com/api/v1/authorize?' + urllib.parse.urlencode(params)
     return url
+
+
+def post_broadcast(title: str, subreddit: str):
+    headers = get_headers()
+    title = urllib.parse.quote(title)
+    url = f'https://strapi.reddit.com/r/{subreddit}/broadcasts?title={title}'
+    response = requests.post(url, data={}, headers=headers)
+
+    try:
+        data = response.json()['data']
+        streamer_key = data['streamer_key']
+        stream_url = data['post']['url']
+        stream_id = data['post']['id']
+    except (KeyError, ValueError):
+        raise UnsuccessfulRequestException(response.status_code, response.content)
+    else:
+        os.environ['RPAN_STREAMER_KEY'] = streamer_key
+        os.environ['RPAN_STREAM_URL'] = stream_url
+        os.environ['RPAN_STREAM_ID'] = stream_id

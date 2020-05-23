@@ -15,7 +15,7 @@
 #  along with Snookey3.  If not, see <https://www.gnu.org/licenses/>.
 
 
-class TokenNotFoundError(Exception):
+class UnsuccessfulRequestException(Exception):
     def __init__(self, status_code: int, response_content: bytes):
         self.status_code = status_code
         self.response_content = response_content

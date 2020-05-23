@@ -14,8 +14,15 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Snookey3.  If not, see <https://www.gnu.org/licenses/>.
 
+import psutil
+
 
 class UnsuccessfulRequestException(Exception):
     def __init__(self, status_code: int, response_content: bytes):
         self.status_code = status_code
         self.response_content = response_content
+
+
+class PortOccupiedException(Exception):
+    def __init__(self, process: psutil.Process):
+        self.process = process

@@ -37,7 +37,10 @@ def get_headers() -> dict:
 def get_me() -> dict:
     headers = get_headers()
     response = requests.get('http://oauth.reddit.com/api/v1/me', headers=headers)
-    response_json = response.json()
+    try:
+        response_json = response.json()
+    except ValueError:
+        raise UnsuccessfulRequestException(response.status_code, response.content)
     return response_json
 
 

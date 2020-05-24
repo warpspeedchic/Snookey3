@@ -50,10 +50,24 @@ def callback():
         message = "Couldn't obtain a token."
     else:
         os.environ['REDDIT_ACCESS_TOKEN'] = token
-        logger.info('Token obtained')
+        logger.info('Token obtained.')
         message = 'Token obtained. You may now close this page.'
 
-    return f"<head><title>{__title__}</title></head><body>{message}</body>"
+    return f"""
+    <head>
+    <title>{__title__}</title>
+        <style>
+            * {{ 
+            background: #181818; 
+            color: #ffffff; 
+            font-family: sans-serif; 
+            font-size: 18px; 
+            text-align: center;
+            padding-top: 25vh;
+            }}
+        </style>
+    </head>
+    <body>{__title__.replace("3", "<span style='color: #488cfa'>3</span>")} - {message}</body>"""
 
 
 def get_token(code: str) -> str:

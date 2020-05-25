@@ -18,6 +18,7 @@ import logging
 import os
 import webbrowser
 
+import pyperclip
 from PyQt5.QtCore import Qt, pyqtSignal, QTimer, pyqtSlot
 from PyQt5.QtWidgets import QWidget, QGridLayout, QStackedWidget, QPushButton, QLineEdit, QComboBox, QMessageBox, \
     QLabel
@@ -25,6 +26,7 @@ from PyQt5.QtWidgets import QWidget, QGridLayout, QStackedWidget, QPushButton, Q
 from snookey3 import config
 from snookey3.core import reddit
 from snookey3.core.exceptions import UnsuccessfulRequestException
+from snookey3.gui.chat import ChatWidget
 from snookey3.gui.widgets import TitleWidget, FooterWidget, LabeledLineEdit
 
 logger = logging.getLogger(__name__)
@@ -43,19 +45,33 @@ class BroadcastReadyWidget(QWidget):
         self.streamer_key_line.line_edit.setReadOnly(True)
 
         self.copy_streamer_key_button = QPushButton('Copy')
+        self.copy_streamer_key_button.clicked.connect(lambda: pyperclip.copy(self.streamer_key))
 
         self.rtmp_address_line = LabeledLineEdit('Server address', 'rtmp://ingest.redd.it/inbound/')
         self.rtmp_address_line.line_edit.setPlaceholderText('RTMP address')
         self.rtmp_address_line.line_edit.setReadOnly(True)
 
         self.copy_rtmp_address_button = QPushButton('Copy')
+        self.copy_rtmp_address_button.clicked.connect(lambda: pyperclip.copy(self.rtmp_address_line.line_edit.text()))
+
+        self.open_browser_button = QPushButton('Open in browser')
+        self.open_browser_button.clicked.connect(lambda: webbrowser.open(self.stream_url))
+
+        self.copy_stream_url_button = QPushButton('Copy URL')
+        self.copy_stream_url_button.clicked.connect(lambda: pyperclip.copy(self.stream_url))
 
         self.instructions = 'Copy and paste the Server address and Broadcast key\n' \
                             'to your broadcasting software.'
         self.instructions_label = QLabel(self.instructions)
         self.instructions_label.setAlignment(Qt.AlignCenter)
 
-        self.open_control_panel_button = QPushButton('Open broadcast control panel')
+        self.open_chat_window_button = QPushButton('Open chat window')
+        try:
+            self.chat = ChatWidget()
+        except (KeyError, UnsuccessfulRequestException):
+            self.open_chat_window_button.setEnabled(False)
+        else:
+            self.open_chat_window_button.clicked.connect(self.chat.show)
 
         self.main_layout = QGridLayout()
         self.main_layout.addWidget(self.streamer_key_line, 0, 0, Qt.AlignVCenter)
@@ -63,7 +79,9 @@ class BroadcastReadyWidget(QWidget):
         self.main_layout.addWidget(self.rtmp_address_line, 1, 0, Qt.AlignVCenter)
         self.main_layout.addWidget(self.copy_rtmp_address_button, 1, 1, Qt.AlignVCenter)
         self.main_layout.addWidget(self.instructions_label, 2, 0, 1, 2, Qt.AlignVCenter)
-        # self.main_layout.addWidget(self.open_control_panel_button, 3, 0, 1, 2, Qt.AlignVCenter)
+        self.main_layout.addWidget(self.open_browser_button, 3, 0, Qt.AlignVCenter)
+        self.main_layout.addWidget(self.copy_stream_url_button, 3, 1, Qt.AlignVCenter)
+        self.main_layout.addWidget(self.open_chat_window_button, 4, 0, 1, 2, Qt.AlignTop)
 
         self.setLayout(self.main_layout)
 
@@ -126,20 +144,18 @@ class AuthorizationWidget(QWidget):
     def __init__(self):
         super(AuthorizationWidget, self).__init__()
 
-        self.message = "This app needs your authorization\nin order to create a broadcast.\n" \
-                       "We promise not to do anything on your account\nwithout your explicit consent.\n" \
-                       "We don't store any of your data."
+        self.message = "This app needs access to your Reddit account\nin order to create a broadcast.\n"
 
         self.some_text = QLabel(self.message)
         self.some_text.setEnabled(False)
         self.some_text.setAlignment(Qt.AlignCenter)
 
-        self.authorize_button = QPushButton('Authorize')
+        self.authorize_button = QPushButton('Authorize through Reddit')
         self.authorize_button.clicked.connect(self.authorize)
 
         self.main_layout = QGridLayout()
         self.main_layout.addWidget(self.some_text, 0, 0, Qt.AlignBottom)
-        self.main_layout.addWidget(self.authorize_button, 1, 0, Qt.AlignCenter)
+        self.main_layout.addWidget(self.authorize_button, 1, 0, Qt.AlignTop)
 
         self.setLayout(self.main_layout)
 

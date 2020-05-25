@@ -1,5 +1,5 @@
 #  Snookey3 - Unofficial streaming utility for the Reddit Public Access Network
-#  Copyright (C) 2020 warpspeedchic <https://github.com/warpspeedchic/>
+#  Copyright (C) 2020 warpspeedchic <https://github.com/warpspeedchic/>QLabel
 #
 #  Snookey3 is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -85,15 +85,13 @@ class FooterWidget(QWidget):
     def __init__(self):
         super(FooterWidget, self).__init__()
 
-        self.version_label = QLineEdit(f'{__title__} - v{__version__}')
+        self.version_label = QLabel(f'{__title__} - v{__version__}')
         self.version_label.setFont(fonts.small)
         self.version_label.setAlignment(Qt.AlignHCenter)
-        self.version_label.setReadOnly(True)
 
-        self.copyright_label = QLineEdit(__copyright__)
+        self.copyright_label = QLabel(__copyright__)
         self.copyright_label.setFont(fonts.small)
         self.copyright_label.setAlignment(Qt.AlignHCenter)
-        self.copyright_label.setReadOnly(True)
 
         self.main_layout = QVBoxLayout()
         self.main_layout.setContentsMargins(0, 0, 0, 0)

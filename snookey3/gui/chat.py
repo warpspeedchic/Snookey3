@@ -19,7 +19,7 @@ import logging
 
 from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot, QUrl
 from PyQt5.QtWebSockets import QWebSocket
-from PyQt5.QtWidgets import QWidget, QGridLayout, QTextEdit, QMessageBox
+from PyQt5.QtWidgets import QWidget, QGridLayout, QTextEdit
 
 from snookey3.core import reddit
 
@@ -82,4 +82,4 @@ class ChatWidget(QWidget):
         payload = comment['payload']
         author = payload['author']
         body = payload['body']
-        self.message_area.appendHtml(f'<b>{author}</b>: {body}')
+        self.message_area.append(f'<b>{author}</b>: {body}')

@@ -1,4 +1,4 @@
-MainWindow {
+MainWindow, ChatWidget {
     background: #181818;
 }
 

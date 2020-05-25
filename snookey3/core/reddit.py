@@ -44,6 +44,19 @@ def get_me() -> dict:
     return response_json
 
 
+def get_video_json(stream_id: str = None) -> dict:
+    if stream_id is None:
+        stream_id = os.getenv('RPAN_STREAM_ID')
+    headers = get_headers()
+    response = requests.get(f'https://strapi.reddit.com/videos/{stream_id}', headers=headers)
+    try:
+        video_json = response.json()['data']
+    except (KeyError, ValueError):
+        raise UnsuccessfulRequestException(response.status_code, response.content)
+
+    return video_json
+
+
 def get_authorization_url() -> str:
     state = callbacks.create_state()
     params = {'client_id': config['REDDIT']['CLIENT_ID'],

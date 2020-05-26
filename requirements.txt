@@ -1,0 +1,6 @@
+Flask~=1.1.2
+waitress~=1.4.3
+requests~=2.23.0
+psutil~=5.7.0
+PyQt5~=5.14.2
+pyperclip~=1.8.0

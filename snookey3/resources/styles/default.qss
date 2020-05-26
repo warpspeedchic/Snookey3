@@ -1,0 +1,56 @@
+MainWindow, ChatWidget {
+    background: #181818;
+}
+
+QLabel {
+    color: #ffffff;
+}
+
+QPushButton {
+    background: #ffffff;
+    border: 6px solid #ffffff;
+}
+
+QPushButton:pressed {
+    background: #d2d2d2;
+    border: 1px solid #a2a2a2;
+}
+
+QLineEdit, QTextEdit {
+    background: transparent;
+    border: 1px solid transparent;
+    color: #ffffff;
+}
+
+QComboBox {
+    background: transparent;
+    border: 1px solid transparent;
+    color: #ffffff;
+}
+
+QComboBox::down-arrow {
+    image: none;
+    background: none;
+}
+
+QComboBox QAbstractItemView {
+    background: #181818;
+    border: none;
+}
+
+QComboBox::item:selected {
+    background: #282828;
+    border: none;
+}
+
+QComboBox::item:checked {
+    background: #282828;
+}
+
+QMessageBox {
+    background: #181818;
+}
+
+FooterWidget QLabel {
+    color: #505050;
+}

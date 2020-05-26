@@ -23,6 +23,7 @@ from .utils import fjson
 from .version import __version__, __title__
 
 ROOT_DIR = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
+HOME_DIR = os.path.expanduser('~')
 
 
 def _init_logger():
@@ -31,8 +32,11 @@ def _init_logger():
 
     c_handler = logging.StreamHandler()
     c_handler.setLevel(logging.DEBUG)
+    logs_dir = os.path.join(HOME_DIR, '.Snookey3', 'logs')
+    if not os.path.exists(logs_dir):
+        os.makedirs(logs_dir)
     log_filename = str(date.today()) + '.log'
-    f_handler = logging.FileHandler(os.path.join(ROOT_DIR, 'logs', log_filename))
+    f_handler = logging.FileHandler(os.path.join(logs_dir, log_filename))
     f_handler.setLevel(logging.DEBUG)
 
     c_formatter = logging.Formatter('%(name)s - %(levelname)s - %(message)s', datefmt='%H:%M:%S')

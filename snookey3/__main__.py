@@ -16,10 +16,9 @@
 
 import sys
 
-from PyQt5.QtGui import QIcon
-
 
 def main():
+    from PyQt5.QtGui import QIcon
     from PyQt5.QtWidgets import QApplication, QMessageBox
     from snookey3.core import server
     from snookey3.utils import files
@@ -49,7 +48,7 @@ def main():
 
     main_window = MainWindow()
     main_window.show()
-    qapp.exec()
+    sys.exit(qapp.exec())
 
 
 if __name__ == '__main__':

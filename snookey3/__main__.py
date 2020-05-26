@@ -14,10 +14,42 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Snookey3.  If not, see <https://www.gnu.org/licenses/>.
 
+import sys
+
+from PyQt5.QtGui import QIcon
+
 
 def main():
-    from snookey3.version import __title__, __version__
-    print(__title__, __version__)
+    from PyQt5.QtWidgets import QApplication, QMessageBox
+    from snookey3.core import server
+    from snookey3.utils import files
+    from snookey3.version import __title__
+    from snookey3.core.exceptions import PortOccupiedException
+    from snookey3.gui import fonts
+    from snookey3.gui.main import MainWindow
+
+    qapp = QApplication([])
+
+    qapp.setApplicationName(__title__)
+    qapp.setWindowIcon(QIcon(files.get_path('resources', 'img', 'Icon.ico')))
+    qapp.setStyle('fusion')
+    qapp.setFont(fonts.default)
+
+    with open(files.get_path('resources', 'styles', 'default.qss')) as stylesheet_file:
+        qapp.setStyleSheet(stylesheet_file.read())
+    fonts.load()
+    try:
+        server.run()
+    except PortOccupiedException as e:
+        QMessageBox.warning(None, 'Port occupied',
+                            "This app requires a specific local port to be open\n"
+                            f"but it seems to be occupied by {e.process.name()}.\n"
+                            f"If it's safe to do so, close {e.process.name()} and try again.")
+        sys.exit(-1)
+
+    main_window = MainWindow()
+    main_window.show()
+    qapp.exec()
 
 
 if __name__ == '__main__':

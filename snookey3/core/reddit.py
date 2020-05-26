@@ -57,6 +57,18 @@ def get_video_json(stream_id: str = None) -> dict:
     return video_json
 
 
+def post_comment(text: str):
+    headers = get_headers()
+    params = {'api_type': 'json',
+              'text': text,
+              'thing_id': os.getenv('RPAN_STREAM_ID')}
+    url = 'https://oauth.reddit.com/api/comment/'
+    response = requests.post(url, params=params, headers=headers)
+    if response.status_code != 200:
+        print(response.url)
+        raise UnsuccessfulRequestException(response.status_code, response.content)
+
+
 def get_authorization_url() -> str:
     state = callbacks.create_state()
     params = {'client_id': config['REDDIT']['CLIENT_ID'],

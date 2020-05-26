@@ -19,7 +19,7 @@ import logging
 
 from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot, QUrl
 from PyQt5.QtWebSockets import QWebSocket
-from PyQt5.QtWidgets import QWidget, QGridLayout, QTextEdit
+from PyQt5.QtWidgets import QWidget, QGridLayout, QTextEdit, QLineEdit, QMessageBox
 
 from snookey3.core import reddit
 
@@ -70,16 +70,33 @@ class ChatWidget(QWidget):
         except (KeyError, UnsuccessfulRequestException):
             raise
 
-        self.message_area = QTextEdit()
-        self.message_area.setReadOnly(True)
+        self.comments_area = QTextEdit()
+        self.comments_area.setReadOnly(True)
+
+        self.post_comment_line = QLineEdit()
+        self.post_comment_line.setPlaceholderText('Send message (ENTER to submit)')
+        self.post_comment_line.returnPressed.connect(self.post_comment)
 
         self.layout = QGridLayout()
-        self.layout.addWidget(self.message_area)
+        self.layout.addWidget(self.comments_area)
+        self.layout.addWidget(self.post_comment_line)
         self.setLayout(self.layout)
+
+        self.setMinimumSize(320, 280)
 
     @pyqtSlot(dict)
     def on_comment_received(self, comment):
         payload = comment['payload']
         author = payload['author']
         body = payload['body']
-        self.message_area.append(f'<b>{author}</b>: {body}')
+        self.comments_area.append(f'<b>{author}</b>: {body}')
+
+    def post_comment(self):
+        try:
+            reddit.post_comment(self.post_comment_line.text())
+        except UnsuccessfulRequestException as e:
+            logger.warning('Comment could not be posted. Status code: %i. Response: %s',
+                           e.status_code, e.response_content)
+            QMessageBox(self, f"Your comment couldn't be posted.\nStatus code: {e.status_code}")
+        else:
+            self.post_comment_line.clear()

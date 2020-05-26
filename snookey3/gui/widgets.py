@@ -61,7 +61,7 @@ class TitleWidget(QWidget):
     def __init__(self):
         super(TitleWidget, self).__init__()
 
-        self.title_label = QLabel(__title__.replace('3', '<span style="color:#488cfa">3</span>'))
+        self.title_label = QLabel(__title__.upper().replace('3', '<span style="color:#488cfa">3</span>'))
         self.title_label.setFont(fonts.title)
 
         self.github_mark = QPixmap(files.get_path('resources', 'img', 'Github-Mark-Light-32px.png'))

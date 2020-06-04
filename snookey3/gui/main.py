@@ -15,7 +15,6 @@
 #  along with Snookey3.  If not, see <https://www.gnu.org/licenses/>.
 
 import logging
-import os
 import webbrowser
 
 import pyperclip
@@ -24,7 +23,8 @@ from PyQt5.QtWidgets import QWidget, QGridLayout, QStackedWidget, QPushButton, Q
     QLabel
 
 from snookey3 import config
-from snookey3.core import reddit
+from snookey3.core import callbacks
+from snookey3.core.reddit import r, Broadcast
 from snookey3.core.exceptions import UnsuccessfulRequestException
 from snookey3.gui.chat import ChatWidget
 from snookey3.gui.widgets import TitleWidget, FooterWidget, LabeledLineEdit
@@ -34,15 +34,20 @@ logger = logging.getLogger(__name__)
 
 class BroadcastReadyWidget(QWidget):
 
-    def __init__(self):
+    new_broadcast = pyqtSignal()
+
+    def __init__(self, broadcast: Broadcast):
         super(BroadcastReadyWidget, self).__init__()
 
-        self.streamer_key = os.getenv('RPAN_STREAMER_KEY')
-        self.stream_url = os.getenv('RPAN_STREAM_URL')
+        self.broadcast = broadcast
+
+        self.streamer_key = self.broadcast.streamer_key
+        self.stream_url = self.broadcast.stream_url
 
         self.streamer_key_line = LabeledLineEdit('Broadcast key', self.streamer_key)
         self.streamer_key_line.line_edit.setPlaceholderText('Streamer key')
         self.streamer_key_line.line_edit.setReadOnly(True)
+        self.streamer_key_line.line_edit.setEchoMode(QLineEdit.Password)
 
         self.copy_streamer_key_button = QPushButton('Copy')
         self.copy_streamer_key_button.clicked.connect(lambda: pyperclip.copy(self.streamer_key))
@@ -67,11 +72,14 @@ class BroadcastReadyWidget(QWidget):
 
         self.open_chat_window_button = QPushButton('Open chat window')
         try:
-            self.chat = ChatWidget()
+            self.chat = ChatWidget(self.broadcast)
         except (KeyError, UnsuccessfulRequestException):
             self.open_chat_window_button.setEnabled(False)
         else:
             self.open_chat_window_button.clicked.connect(self.chat.show)
+
+        self.new_broadcast_button = QPushButton('New broadcast')
+        self.new_broadcast_button.clicked.connect(self.new_broadcast.emit)
 
         self.main_layout = QGridLayout()
         self.main_layout.addWidget(self.streamer_key_line, 0, 0, Qt.AlignVCenter)
@@ -79,21 +87,22 @@ class BroadcastReadyWidget(QWidget):
         self.main_layout.addWidget(self.rtmp_address_line, 1, 0, Qt.AlignVCenter)
         self.main_layout.addWidget(self.copy_rtmp_address_button, 1, 1, Qt.AlignVCenter)
         self.main_layout.addWidget(self.instructions_label, 2, 0, 1, 2, Qt.AlignVCenter)
-        self.main_layout.addWidget(self.open_browser_button, 3, 0, Qt.AlignVCenter)
-        self.main_layout.addWidget(self.copy_stream_url_button, 3, 1, Qt.AlignVCenter)
+        self.main_layout.addWidget(self.open_browser_button, 3, 0, Qt.AlignBottom)
+        self.main_layout.addWidget(self.copy_stream_url_button, 3, 1, Qt.AlignBottom)
         self.main_layout.addWidget(self.open_chat_window_button, 4, 0, 1, 2, Qt.AlignTop)
+        self.main_layout.addWidget(self.new_broadcast_button, 5, 0, 1, 2, Qt.AlignVCenter)
 
         self.setLayout(self.main_layout)
 
 
 class BroadcastSetupWidget(QWidget):
 
-    broadcast_created = pyqtSignal()
+    broadcast_created = pyqtSignal(Broadcast)
 
     def __init__(self):
         super(BroadcastSetupWidget, self).__init__()
 
-        self.username = reddit.get_me()['name']
+        self.username = r.username()
 
         self.username_line = QLineEdit(self.username)
         self.username_line.setPlaceholderText('u/username')
@@ -126,7 +135,7 @@ class BroadcastSetupWidget(QWidget):
         subreddit = self.subreddit_combo.currentText()
 
         try:
-            reddit.post_broadcast(title, subreddit)
+            broadcast = r.broadcast.post(title, subreddit)
         except UnsuccessfulRequestException as e:
             message = 'Broadcast creation failed.'
             if e.status_code == 503:
@@ -134,7 +143,7 @@ class BroadcastSetupWidget(QWidget):
             logger.warning(message + 'Status code: %i, full response: %s', e.status_code, e.response_content)
             QMessageBox.warning(self, 'Broadcast creation unsuccessful', message)
         else:
-            self.broadcast_created.emit()
+            self.broadcast_created.emit(broadcast)
 
 
 class AuthorizationWidget(QWidget):
@@ -164,11 +173,11 @@ class AuthorizationWidget(QWidget):
         self.timer.timeout.connect(self.look_for_token)
 
     def authorize(self):
-        webbrowser.open(reddit.get_authorization_url())
+        webbrowser.open(r.auth.url(callbacks.create_state()))
         self.timer.start()
 
     def look_for_token(self):
-        if 'REDDIT_ACCESS_TOKEN' in os.environ:
+        if r.auth.access_token:
             self.authorized.emit()
             self.timer.stop()
             return
@@ -185,7 +194,7 @@ class MainWindow(QWidget):
         authorization_widget.authorized.connect(self.on_authorized)
 
         self.main_stacked = QStackedWidget()
-        self.main_stacked.setFixedSize(400, 240)
+        self.main_stacked.setFixedSize(400, 260)
         self.main_stacked.addWidget(authorization_widget)
 
         self.footer_widget = FooterWidget()
@@ -208,9 +217,11 @@ class MainWindow(QWidget):
         broadcast_setup_widget.broadcast_created.connect(self.on_broadcast_created)
         self.switch_to_widget(broadcast_setup_widget)
 
-    @pyqtSlot()
-    def on_broadcast_created(self):
-        self.switch_to_widget(BroadcastReadyWidget())
+    @pyqtSlot(Broadcast)
+    def on_broadcast_created(self, broadcast: Broadcast):
+        broadcast_ready_widget = BroadcastReadyWidget(broadcast)
+        broadcast_ready_widget.new_broadcast.connect(self.on_authorized)
+        self.switch_to_widget(broadcast_ready_widget)
 
     def switch_to_widget(self, widget: QWidget):
         focus_widget = self.main_stacked.focusWidget()

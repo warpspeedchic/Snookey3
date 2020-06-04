@@ -15,15 +15,12 @@
 #  along with Snookey3.  If not, see <https://www.gnu.org/licenses/>.
 
 import logging
-import os
 from uuid import uuid4
 
-import requests
-import requests.auth
 from flask import Flask, request, abort
 
-from snookey3 import config
 from snookey3.version import __title__
+from .reddit import r
 from .exceptions import UnsuccessfulRequestException
 
 logger = logging.getLogger(__name__)
@@ -44,12 +41,11 @@ def callback():
     code = request.args.get('code')
 
     try:
-        token = get_token(code)
+        r.auth.authorize(code)
     except UnsuccessfulRequestException as e:
         logger.error('Token not found. Status code: %i. Response: %s', e.status_code, e.response_content)
         message = "Couldn't obtain a token."
     else:
-        os.environ['REDDIT_ACCESS_TOKEN'] = token
         logger.info('Token obtained.')
         message = 'Token obtained. You may now close this page.'
 
@@ -68,25 +64,6 @@ def callback():
         </style>
     </head>
     <body>{__title__.replace("3", "<span style='color: #488cfa'>3</span>")} - {message}</body>"""
-
-
-def get_token(code: str) -> str:
-    auth = requests.auth.HTTPBasicAuth(config['REDDIT']['CLIENT_ID'], '')
-    data = {'grant_type': 'authorization_code',
-            'code': code,
-            'redirect_uri': config['REDDIT']['REDIRECT_URI']}
-    headers = {'User-agent': config['USER_AGENT']}
-    response = requests.post('https://ssl.reddit.com/api/v1/access_token',
-                             auth=auth,
-                             data=data,
-                             headers=headers)
-
-    try:
-        token = response.json()['access_token']
-    except (KeyError, ValueError):
-        raise UnsuccessfulRequestException(response.status_code, response.content)
-
-    return token
 
 
 valid_states = []

@@ -21,9 +21,8 @@ from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot, QUrl
 from PyQt5.QtWebSockets import QWebSocket
 from PyQt5.QtWidgets import QWidget, QGridLayout, QTextEdit, QLineEdit, QMessageBox
 
-from snookey3.core import reddit
-
 from snookey3.core.exceptions import UnsuccessfulRequestException
+from snookey3.core.reddit import Broadcast
 
 logger = logging.getLogger(__name__)
 
@@ -37,9 +36,9 @@ class Chat(QObject):
         self.websocket = QWebSocket()
         self.websocket.textMessageReceived.connect(self.on_text_message_received)
 
-    def connect(self):
+    def connect(self, broadcast: Broadcast):
         try:
-            live_comments_websocket = reddit.get_video_json()['post']['liveCommentsWebsocket']
+            live_comments_websocket = broadcast.live_comments_websocket()
         except UnsuccessfulRequestException as e:
             logger.error('Could not fetch the video json. Status code: %i. Response: %s', 
                          e.status_code, e.response_content)
@@ -60,13 +59,16 @@ class Chat(QObject):
 
 class ChatWidget(QWidget):
 
-    def __init__(self):
+    def __init__(self, broadcast: Broadcast):
         super(ChatWidget, self).__init__()
+
+        self.broadcast = broadcast
+
         self.setWindowTitle('Chat')
         self.chat = Chat()
         self.chat.comment_received.connect(self.on_comment_received)
         try:
-            self.chat.connect()
+            self.chat.connect(self.broadcast)
         except (KeyError, UnsuccessfulRequestException):
             raise
 
@@ -93,7 +95,7 @@ class ChatWidget(QWidget):
 
     def post_comment(self):
         try:
-            reddit.post_comment(self.post_comment_line.text())
+            self.broadcast.post_comment(self.post_comment_line.text())
         except UnsuccessfulRequestException as e:
             logger.warning('Comment could not be posted. Status code: %i. Response: %s',
                            e.status_code, e.response_content)

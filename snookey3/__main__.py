@@ -14,15 +14,20 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Snookey3.  If not, see <https://www.gnu.org/licenses/>.
 
+import logging
 import sys
+
+logger = logging.getLogger(__name__)
 
 
 def main():
+    from snookey3.version import __title__, __version__
+    logger.info('%s - v%s', __title__, __version__)
+
     from PyQt5.QtGui import QIcon
     from PyQt5.QtWidgets import QApplication, QMessageBox
     from snookey3.core import server
     from snookey3.utils import files
-    from snookey3.version import __title__
     from snookey3.core.exceptions import PortOccupiedException
     from snookey3.gui import fonts
     from snookey3.gui.main import MainWindow

@@ -19,6 +19,8 @@ import os
 import sys
 from datetime import date
 
+import requests
+
 from .utils import fjson
 from .version import __version__, __title__
 
@@ -59,8 +61,30 @@ def _init_logger():
 
     logger.info('Logger ready')
 
+    return logger
 
-_init_logger()
+
+def _pull_subreddits_from_github():
+    try:
+        response = requests.get('https://raw.githubusercontent.com/warpspeedchic/Snookey3/master/subreddits',
+                                headers={'User-agent': config.get('USER_AGENT')})
+    except:
+        return None
+
+    if response.status_code == 200:
+        return [subreddit.strip() for subreddit in response.text.splitlines()]
+    return None
+
+
+_logger = _init_logger()
 
 with open(os.path.join(ROOT_DIR, 'config.json')) as config_file:
     config = fjson.load(config_file, title=__title__, version=__version__)
+
+if config['PULL_SUBREDDITS_FROM_GITHUB']:
+    subreddits = _pull_subreddits_from_github()
+    if subreddits:
+        config['SUBREDDITS'] = subreddits
+        _logger.info('Using online subreddit list.')
+    else:
+        _logger.info('Using local subreddit list.')

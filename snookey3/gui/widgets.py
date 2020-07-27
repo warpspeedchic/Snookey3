@@ -14,29 +14,11 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Snookey3.  If not, see <https://www.gnu.org/licenses/>.
 
-import webbrowser
-
-from PyQt5.QtCore import Qt, QSize
-from PyQt5.QtGui import QPainter, QPixmap
-from PyQt5.QtWidgets import QWidget, QLabel, QHBoxLayout, QAbstractButton, QLineEdit, QVBoxLayout
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QWidget, QLabel, QHBoxLayout, QLineEdit, QVBoxLayout
 
 from snookey3.gui import fonts
-from snookey3.utils import files
-from snookey3.version import __title__, __copyright__, __url__, __version__
-
-
-class PicButton(QAbstractButton):
-    def __init__(self, pixmap):
-        super(PicButton, self).__init__()
-        self.pixmap = pixmap
-        self.setFixedSize(QSize(self.pixmap.size()))
-
-    def paintEvent(self, event):
-        painter = QPainter(self)
-        painter.drawPixmap(event.rect(), self.pixmap)
-
-    def sizeHint(self):
-        return self.pixmap.size()
+from snookey3.version import __title__, __copyright__, __version__
 
 
 class LabeledLineEdit(QWidget):
@@ -64,20 +46,11 @@ class TitleWidget(QWidget):
         self.title_label = QLabel(__title__.upper().replace('3', '<span style="color:#488cfa">3</span>'))
         self.title_label.setFont(fonts.title)
 
-        self.github_mark = QPixmap(files.get_path('resources', 'img', 'Github-Mark-Light-32px.png'))
-        self.github_button = PicButton(self.github_mark)
-        self.github_button.clicked.connect(self.open_github)
-
         self.main_layout = QHBoxLayout()
         self.main_layout.setContentsMargins(0, 0, 0, 0)
         self.main_layout.addWidget(self.title_label, alignment=Qt.AlignVCenter | Qt.AlignLeft)
-        self.main_layout.addWidget(self.github_button, alignment=Qt.AlignVCenter | Qt.AlignRight)
 
         self.setLayout(self.main_layout)
-
-    @staticmethod
-    def open_github():
-        webbrowser.open(__url__)
 
 
 class FooterWidget(QWidget):

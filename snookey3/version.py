@@ -17,7 +17,7 @@
 __title__ = 'Snookey3'
 __description__ = 'Unofficial streaming utility for the Reddit Public Access Network'
 __url__ = 'https://github.com/warpspeedchic/Snookey3'
-__version__ = '0.1.0-beta'
+__version__ = '0.1.0'
 __author__ = 'warpspeedchic'
 __copyright__ = 'Copyright (C) 2020 warpspeedchic <https://github.com/warpspeedchic/>'
 __license__ = 'GPL-3.0'

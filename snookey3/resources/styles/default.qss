@@ -33,6 +33,10 @@ QComboBox::down-arrow {
     background: none;
 }
 
+QComboBox::drop-down {
+    border: none;
+}
+
 QComboBox QAbstractItemView {
     background: #181818;
     border: none;

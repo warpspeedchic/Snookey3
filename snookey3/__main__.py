@@ -32,7 +32,7 @@ def main():
     from snookey3.gui import fonts
     from snookey3.gui.main import MainWindow
 
-    qapp = QApplication([])
+    qapp = QApplication(sys.argv)
 
     qapp.setApplicationName(__title__)
     qapp.setWindowIcon(QIcon(files.get_path('resources', 'img', 'Icon.ico')))

@@ -13,7 +13,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with Snookey3.  If not, see <https://www.gnu.org/licenses/>.
-
+import json
 import logging
 import webbrowser
 
@@ -137,10 +137,13 @@ class BroadcastSetupWidget(QWidget):
         try:
             broadcast = r.broadcast.post(title, subreddit)
         except UnsuccessfulRequestException as e:
-            message = 'Broadcast creation failed.'
-            if e.status_code == 503:
-                message += f'\n{subreddit} is currently unavailable.'
-            logger.warning(message + 'Status code: %i, full response: %s', e.status_code, e.response_content)
+            message = f'Broadcast creation failed. Status code: {e.status_code}'
+            status_message = json.loads(e.response_content).get('status_message')
+            if not status_message:
+                status_message = json.loads(e.response_content).get('status')
+            if status_message:
+                message += '\n' + status_message
+            logger.warning(message, e.response_content)
             QMessageBox.warning(self, 'Broadcast creation unsuccessful', message)
         else:
             self.broadcast_created.emit(broadcast)
